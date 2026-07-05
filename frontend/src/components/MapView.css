@@ -1,0 +1,380 @@
+/* ═══════════════════════════════════════
+   MAP VIEW — SHELL
+═══════════════════════════════════════ */
+.map-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.map-container {
+  width: 100%;
+  height: 100%;
+}
+
+/* ═══════════════════
+   BRAND HEADER HUD (top-left)
+═══════════════════ */
+.brand-header {
+  position: absolute;
+  top: 18px;
+  left: 18px;
+  z-index: 700;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(6, 13, 26, 0.82);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 14px;
+  padding: 9px 14px;
+  backdrop-filter: blur(20px);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+}
+
+.brand-logo-glow {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: #00b4d8;
+  box-shadow: 0 0 10px rgba(0,180,216,0.9), 0 0 20px rgba(0,180,216,0.5);
+  animation: pulse 2.5s infinite;
+  flex-shrink: 0;
+}
+
+.brand-text-wrapper { display: flex; flex-direction: column; gap: 1px; }
+
+.brand-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 12px;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: 0.06em;
+  line-height: 1;
+}
+
+.brand-subtitle {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 7px;
+  font-weight: 500;
+  color: rgba(226, 234, 244, 0.35);
+  letter-spacing: 0.15em;
+  margin-top: 2px;
+}
+
+/* ═══════════════════
+   MAP VIEW SELECTOR HUD (top-center)
+═══════════════════ */
+.map-view-selector-hud {
+  position: absolute;
+  top: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 700;
+  display: flex;
+  gap: 3px;
+  background: rgba(6, 13, 26, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 30px;
+  padding: 4px;
+  backdrop-filter: blur(20px);
+  box-shadow: 0 8px 30px rgba(0,0,0,0.6);
+}
+
+.hud-chip {
+  background: transparent;
+  border: 1px solid transparent;
+  color: rgba(226, 234, 244, 0.5);
+  padding: 6px 13px;
+  border-radius: 20px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+}
+
+.hud-chip:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.hud-chip.active {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.hud-chip.metro.active {
+  color: #00b4d8;
+  background: rgba(0, 180, 216, 0.12);
+  border-color: rgba(0, 180, 216, 0.28);
+  box-shadow: 0 0 10px rgba(0, 180, 216, 0.18);
+}
+
+.hud-chip.suburban.active {
+  color: #f4a261;
+  background: rgba(244, 162, 97, 0.12);
+  border-color: rgba(244, 162, 97, 0.28);
+  box-shadow: 0 0 10px rgba(244, 162, 97, 0.18);
+}
+
+.hud-chip.bus.active {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.12);
+  border-color: rgba(239, 68, 68, 0.28);
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.18);
+}
+
+.hud-chip.all.active {
+  color: #06d6a0;
+  background: rgba(6, 214, 160, 0.12);
+  border-color: rgba(6, 214, 160, 0.28);
+  box-shadow: 0 0 10px rgba(6, 214, 160, 0.18);
+}
+
+/* ═══════════════════
+   MAP LEGEND (top-left, below brand)
+═══════════════════ */
+.map-legend {
+  position: absolute;
+  top: 80px;
+  left: 18px;
+  z-index: 700;
+  background: rgba(6, 13, 26, 0.86);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 12px 14px;
+  backdrop-filter: blur(20px);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+  min-width: 140px;
+}
+
+.legend-title {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 7px;
+  font-weight: 700;
+  color: rgba(226, 234, 244, 0.35);
+  letter-spacing: 0.18em;
+  margin-bottom: 8px;
+}
+
+.legend-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 5px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  color: rgba(226, 234, 244, 0.65);
+  letter-spacing: 0.02em;
+}
+
+.legend-line {
+  width: 26px;
+  height: 3px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+.legend-divider {
+  height: 1px;
+  background: rgba(255,255,255,0.06);
+  margin: 6px 0;
+}
+
+.legend-rail {
+  width: 26px;
+  height: 0;
+  border-bottom: 2px solid;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.legend-rail::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: repeating-linear-gradient(
+    90deg,
+    currentColor 0px, currentColor 2px,
+    transparent 2px, transparent 6px
+  );
+  opacity: 0.3;
+}
+
+/* ═══════════════════
+   STATUS BADGE (top-right, smaller)
+═══════════════════ */
+.status-badge {
+  position: absolute;
+  top: 18px;
+  right: 64px;   /* right of zoom controls */
+  z-index: 700;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  background: rgba(6,13,26,0.86);
+  border: 1px solid rgba(255,255,255,0.09);
+  border-radius: 20px;
+  padding: 5px 13px;
+  backdrop-filter: blur(20px);
+  pointer-events: none;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.4);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  color: rgba(220,232,245,0.55);
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.sdot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.dot-warn    { background: #f4a261; animation: pulse 1.5s infinite; }
+.dot-online  { background: #06d6a0; box-shadow: 0 0 6px rgba(6,214,160,0.7); animation: pulse 3s infinite; }
+.dot-offline { background: #e63946; box-shadow: 0 0 6px rgba(230,57,70,0.6); }
+
+/* ═══════════════════
+   LEAFLET TOOLTIP
+═══════════════════ */
+.station-tooltip {
+  background: rgba(6,13,26,0.95) !important;
+  border: 1px solid rgba(255,255,255,0.12) !important;
+  border-radius: 8px !important;
+  color: #e2eaf4 !important;
+  font-family: 'Syne', sans-serif !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  padding: 5px 10px !important;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.5) !important;
+  white-space: nowrap !important;
+}
+
+.station-tooltip::before { display: none !important; }
+
+/* ═══════════════════
+   STATION INFO DRAWER (bottom-center, above search pill)
+   z-index: 850 — above search panel (800), below map HUD (900)
+═══════════════════ */
+.hud-drawer {
+  position: absolute;
+  bottom: 90px;        /* well above the collapsed pill at bottom:18px */
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(100% - 40px);
+  max-width: 420px;
+  z-index: 850;
+  background: rgba(6, 13, 26, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 20px;
+  padding: 18px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.8), 0 0 20px rgba(0,180,216,0.12);
+  backdrop-filter: blur(24px);
+  font-family: 'JetBrains Mono', monospace;
+  color: #e2eaf4;
+}
+
+.hud-drawer-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: rgba(220, 232, 245, 0.55);
+  font-size: 13px;
+  cursor: pointer;
+  padding: 0;
+  width: 26px; height: 26px;
+  border-radius: 7px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.hud-drawer-close:hover {
+  color: #ffffff;
+  background: rgba(255,255,255,0.1);
+}
+
+.hud-drawer-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  padding-bottom: 13px;
+  margin-bottom: 13px;
+  padding-right: 28px;
+}
+
+.hud-drawer-icon {
+  width: 40px; height: 40px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.hud-drawer-title-group h3 {
+  font-family: 'Syne', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0;
+  letter-spacing: 0.02em;
+}
+
+.hud-drawer-title-group p {
+  font-size: 8px;
+  color: #f4a261;
+  margin: 3px 0 0 0;
+  letter-spacing: 0.12em;
+}
+
+.hud-drawer-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.hud-drawer-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 10px;
+}
+
+.hud-drawer-label {
+  color: rgba(220, 232, 245, 0.38);
+}
+
+.hud-drawer-val { color: #e2eaf4; }
+
+.helpline-number {
+  color: #f4a261;
+  font-weight: bold;
+}
+
+/* ═══════════════════
+   ANIMATIONS
+═══════════════════ */
+.animate-slide-up {
+  animation: drawerUp 0.32s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes drawerUp {
+  from { opacity: 0; transform: translateX(-50%) translateY(30px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0);    }
+}
+
+@keyframes fadeIn  { from { opacity: 0; } to { opacity: 1; } }
+@keyframes pulse   { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
