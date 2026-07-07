@@ -4,7 +4,7 @@ import SearchPanel from "./components/SearchPanel";
 import RouteResults from "./components/RouteResults";
 import "./styles/global.css";
 
-const API = "http://localhost:8000";
+const API = "";
 
 export default function App() {
   const [stations, setStations]                 = useState([]);

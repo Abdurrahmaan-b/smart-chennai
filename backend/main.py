@@ -319,3 +319,15 @@ def get_system_status():
             "metro_operating": metro_open
         }
     }
+
+# ══════════════════════════════════════════
+# SERVE STATIC FRONTEND BUILD
+# ══════════════════════════════════════════
+import os
+from fastapi.staticfiles import StaticFiles
+
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+DIST_DIR = os.path.join(BASE_DIR, "frontend", "dist")
+
+if os.path.exists(DIST_DIR):
+    app.mount("/", StaticFiles(directory=DIST_DIR, html=True), name="static")

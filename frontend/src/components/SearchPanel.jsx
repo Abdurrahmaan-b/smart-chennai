@@ -20,7 +20,7 @@ const MODES = [
 async function fetchSuggestions(query) {
   if (!query || query.length < 2) return { data: [], error: null };
   try {
-    const url = `http://localhost:8000/api/search?q=${encodeURIComponent(query)}`;
+    const url = `/api/search?q=${encodeURIComponent(query)}`;
     const res = await fetch(url, {
       signal: AbortSignal.timeout(5000),
     });
@@ -158,7 +158,7 @@ export default function SearchPanel({
       async (position) => {
         const { latitude, longitude } = position.coords;
         try {
-          const res = await fetch(`http://localhost:8000/api/reverse?lat=${latitude}&lon=${longitude}`);
+          const res = await fetch(`/api/reverse?lat=${latitude}&lon=${longitude}`);
           if (!res.ok) throw new Error("Reverse geocode failed");
           const data = await res.json();
           
