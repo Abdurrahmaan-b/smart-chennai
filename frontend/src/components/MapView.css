@@ -378,3 +378,346 @@
 
 @keyframes fadeIn  { from { opacity: 0; } to { opacity: 1; } }
 @keyframes pulse   { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+/* ═══════════════════════════════
+   ANALOG CLOCK HUD — Premium Vertical Card
+═══════════════════════════════ */
+.clock-hud {
+  position: absolute;
+  top: 60px;           /* below the status badge */
+  right: 52px;         /* clear of zoom controls */
+  z-index: 700;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  pointer-events: none;
+  /* Unified glassmorphic card */
+  background: rgba(5, 10, 20, 0.82);
+  border: 1px solid rgba(255,255,255,0.11);
+  border-radius: 18px;
+  padding: 14px 12px 10px;
+  backdrop-filter: blur(24px) saturate(160%);
+  box-shadow:
+    0 4px 24px rgba(0,0,0,0.6),
+    0 0 0 1px rgba(0,180,216,0.06),
+    inset 0 1px 0 rgba(255,255,255,0.07);
+  width: 110px;
+}
+
+/* ── Clock SVG face ── */
+.clock-face {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+}
+
+.clock-svg {
+  width: 92px;
+  height: 92px;
+  overflow: visible;
+}
+
+/* Outer glow ring */
+.clock-glow-ring {
+  fill: none;
+  stroke: rgba(0,180,216,0.12);
+  stroke-width: 3;
+  filter: blur(1px);
+}
+
+/* Bezel */
+.clock-bezel {
+  fill: none;
+  stroke: rgba(255,255,255,0.14);
+  stroke-width: 1.2;
+}
+
+/* Dark face */
+.clock-face-fill {
+  fill: rgba(4, 9, 18, 0.88);
+}
+
+/* Tick marks */
+.tick-major {
+  stroke: rgba(255,255,255,0.8);
+  stroke-width: 2.2;
+  stroke-linecap: round;
+}
+
+.tick-minor {
+  stroke: rgba(255,255,255,0.22);
+  stroke-width: 1;
+  stroke-linecap: round;
+}
+
+/* Hands */
+.hand-hr {
+  stroke: rgba(255,255,255,0.96);
+  stroke-width: 3.2;
+  stroke-linecap: round;
+}
+
+.hand-min {
+  stroke: rgba(200,225,245,0.88);
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.hand-sec {
+  stroke: #00b4d8;
+  stroke-width: 1.3;
+  stroke-linecap: round;
+  filter: drop-shadow(0 0 3px rgba(0,180,216,0.8));
+}
+
+.hand-sec-tail {
+  stroke: #00b4d8;
+  stroke-width: 1.3;
+  stroke-linecap: round;
+  opacity: 0.55;
+}
+
+/* Center jewel */
+.clock-jewel {
+  fill: #00b4d8;
+  filter: drop-shadow(0 0 4px rgba(0,180,216,0.9));
+}
+
+.clock-jewel-inner {
+  fill: rgba(4, 9, 18, 0.95);
+}
+
+/* ── Digital time ── */
+.clock-digital {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  color: rgba(220, 235, 255, 0.85);
+  text-align: center;
+}
+
+/* ── Divider ── */
+.clock-divider {
+  width: 100%;
+  height: 1px;
+  background: rgba(255,255,255,0.07);
+  margin: 8px 0 6px;
+}
+
+/* ── Weather section ── */
+.clock-weather {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  width: 100%;
+}
+
+.cw-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.cw-icon {
+  font-size: 15px;
+  line-height: 1;
+}
+
+.cw-temp {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 16px;
+  font-weight: 700;
+  color: rgba(255,255,255,0.95);
+  line-height: 1;
+}
+
+.cw-cond {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 7.5px;
+  color: rgba(180,205,235,0.45);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-align: center;
+}
+
+.cw-badge {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 6.5px;
+  letter-spacing: 0.1em;
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-weight: 700;
+  margin-top: 3px;
+}
+
+.cw-badge.peak {
+  background: rgba(244,162,97,0.15);
+  color: #f4a261;
+  border: 1px solid rgba(244,162,97,0.3);
+}
+
+.cw-badge.night {
+  background: rgba(139,140,248,0.12);
+  color: #8b8cf8;
+  border: 1px solid rgba(139,140,248,0.28);
+}
+
+/* Vertical divider util */
+.legend-divider-vertical {
+  width: 1px;
+  height: 10px;
+  background: rgba(255, 255, 255, 0.15);
+  margin: 0 2px;
+}
+
+
+/* Clock face container */
+.clock-face {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.clock-svg {
+  width: 64px;
+  height: 64px;
+  filter: drop-shadow(0 2px 12px rgba(0,0,0,0.55));
+}
+
+/* SVG Elements */
+.clock-bezel {
+  fill: none;
+  stroke: rgba(255,255,255,0.18);
+  stroke-width: 1.5;
+}
+
+.clock-face-fill {
+  fill: rgba(6, 12, 22, 0.78);
+}
+
+.tick-major {
+  stroke: rgba(255,255,255,0.75);
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.tick-minor {
+  stroke: rgba(255,255,255,0.3);
+  stroke-width: 1;
+  stroke-linecap: round;
+}
+
+.hand-hr {
+  stroke: rgba(255,255,255,0.95);
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+
+.hand-min {
+  stroke: rgba(220,232,245,0.85);
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.hand-sec {
+  stroke: #00b4d8;
+  stroke-width: 1.2;
+  stroke-linecap: round;
+}
+
+.hand-sec-tail {
+  stroke: #00b4d8;
+  stroke-width: 1.2;
+  stroke-linecap: round;
+  opacity: 0.6;
+}
+
+.clock-jewel {
+  fill: #00b4d8;
+}
+
+.clock-jewel-inner {
+  fill: rgba(6, 12, 22, 0.9);
+}
+
+/* Digital time label */
+.clock-digital {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 8.5px;
+  letter-spacing: 0.08em;
+  color: rgba(220,232,245,0.7);
+  background: rgba(6,12,22,0.7);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 6px;
+  padding: 2px 6px;
+}
+
+/* Weather panel */
+.clock-weather {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+  background: rgba(6, 12, 22, 0.78);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 10px;
+  padding: 7px 10px;
+  backdrop-filter: blur(20px);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.45);
+}
+
+.cw-icon {
+  font-size: 16px;
+  line-height: 1;
+}
+
+.cw-temp {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 14px;
+  font-weight: 700;
+  color: rgba(255,255,255,0.92);
+  line-height: 1;
+}
+
+.cw-cond {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 8px;
+  color: rgba(200,215,235,0.5);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.cw-badge {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 7px;
+  letter-spacing: 0.08em;
+  border-radius: 4px;
+  padding: 1px 5px;
+  font-weight: 700;
+}
+
+.cw-badge.peak {
+  background: rgba(244,162,97,0.18);
+  color: #f4a261;
+  border: 1px solid rgba(244,162,97,0.35);
+}
+
+.cw-badge.night {
+  background: rgba(139,140,248,0.15);
+  color: #8b8cf8;
+  border: 1px solid rgba(139,140,248,0.3);
+}
+
+/* Keep the vertical divider util for reuse */
+.legend-divider-vertical {
+  width: 1px;
+  height: 10px;
+  background: rgba(255, 255, 255, 0.15);
+  margin: 0 2px;
+}

@@ -21,6 +21,7 @@ export default function App() {
   const [activeMapType, setActiveMapType]       = useState("default");
   const [selectedStationNode, setSelectedStationNode] = useState(null);
   const [panelMinimized, setPanelMinimized]     = useState(false);
+  const [envStatus, setEnvStatus]               = useState(null);
 
   // Persist search text across open/close of panel
   const [fromText, setFromText] = useState("");
@@ -53,7 +54,27 @@ export default function App() {
         setTimeout(connectToBackend, 5000);
       }
     }
+
+    async function fetchEnvStatus() {
+      try {
+        const res = await fetch(`${API}/status`);
+        if (res.ok) {
+          const data = await res.json();
+          console.log("Smart Chennai HUD: Fetched envStatus successfully:", data);
+          setEnvStatus(data);
+        } else {
+          console.warn("Smart Chennai HUD: Fetch status not OK:", res.status);
+        }
+      } catch (e) {
+        console.error("Smart Chennai HUD: Failed to fetch environmental status:", e);
+      }
+    }
+
     connectToBackend();
+    fetchEnvStatus();
+
+    const interval = setInterval(fetchEnvStatus, 30000);
+    return () => clearInterval(interval);
   }, []);
 
   function handleMapTap() {
@@ -110,6 +131,7 @@ export default function App() {
         isRoutingMode={searchState === "results"}
         showMapSelector={!panelOpen && searchState !== "results"}
         onUserDrag={() => setPanelMinimized(true)}
+        envStatus={envStatus}
       />
 
       {/* Hide search pill when station drawer is open to avoid overlap */}

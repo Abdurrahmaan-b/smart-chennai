@@ -20,15 +20,8 @@ const MODES = [
 async function fetchSuggestions(query) {
   if (!query || query.length < 2) return { data: [], error: null };
   try {
-    const url =
-      `https://nominatim.openstreetmap.org/search?` +
-      `q=${encodeURIComponent(query)}&` +
-      `format=json&limit=7&addressdetails=1&` +
-      `countrycodes=in&` +
-      `viewbox=79.85,12.65,80.55,13.35&bounded=1&` +
-      `accept-language=en`;
+    const url = `http://localhost:8000/api/search?q=${encodeURIComponent(query)}`;
     const res = await fetch(url, {
-      headers: { "User-Agent": "SmartChennaiApp/1.0" },
       signal: AbortSignal.timeout(5000),
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -36,10 +29,9 @@ async function fetchSuggestions(query) {
     if (!data.length) return { data: [], error: "no_results" };
     return {
       data: data.map(item => {
-        const parts = item.display_name.split(", ");
         return {
-          name:     parts.slice(0, 3).join(", "),
-          fullName: item.display_name,
+          name:     item.address_line1 || item.name || item.city || "Unknown Place",
+          fullName: item.formatted || "Unknown location",
           lat:      parseFloat(item.lat),
           lng:      parseFloat(item.lon),
         };
@@ -48,7 +40,8 @@ async function fetchSuggestions(query) {
     };
   } catch (err) {
     if (err.name === "TimeoutError") return { data: [], error: "timeout" };
-    return { data: [], error: "network" };
+    console.error("Geocoding fetch error:", err);
+    return { data: [], error: "network_error" };
   }
 }
 
@@ -145,6 +138,57 @@ export default function SearchPanel({
     setToPlace(place);
     setToSugg([]);
     setActiveField(null);
+  }
+
+  async function handleUseGPS(field) {
+    const setLoading = field === "from" ? setFromLoading : setToLoading;
+    const setError = field === "from" ? setFromError : setToError;
+    const pick = field === "from" ? pickFrom : pickTo;
+
+    setLoading(true);
+    setError(null);
+
+    if (!navigator.geolocation) {
+      setError("GPS not supported by your browser");
+      setLoading(false);
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords;
+        try {
+          const res = await fetch(`http://localhost:8000/api/reverse?lat=${latitude}&lon=${longitude}`);
+          if (!res.ok) throw new Error("Reverse geocode failed");
+          const data = await res.json();
+          
+          const place = {
+            name: data.address_line1 || data.name || "Current Location",
+            fullName: data.formatted || `Current Location (${latitude.toFixed(4)}, ${longitude.toFixed(4)})`,
+            lat: latitude,
+            lng: longitude,
+          };
+          pick(place);
+        } catch (err) {
+          console.error("GPS reverse geocoding error:", err);
+          const fallbackPlace = {
+            name: "Current Location",
+            fullName: `Current Location (${latitude.toFixed(4)}, ${longitude.toFixed(4)})`,
+            lat: latitude,
+            lng: longitude,
+          };
+          pick(fallbackPlace);
+        } finally {
+          setLoading(false);
+        }
+      },
+      (err) => {
+        console.error("GPS error:", err);
+        setError("Could not access location. Please check browser permissions.");
+        setLoading(false);
+      },
+      { enableHighAccuracy: true, timeout: 8000 }
+    );
   }
 
   function swap() {
@@ -246,19 +290,37 @@ export default function SearchPanel({
                     <button className="clear-x" onClick={() => { setFromText(""); setFromPlace(null); setFromSugg([]); }}>×</button>
                   )}
                 </div>
-                {activeField === "from" && (fromSugg.length > 0 || fromLoading || fromError) && (
+                {activeField === "from" && (
                   <div className="sugg-list">
                     <div className="sugg-list-header">
                       <button className="sugg-back" onClick={() => setActiveField(null)}>← back</button>
                     </div>
+                    
+                    {/* GPS Button */}
+                    <div className="sugg-item gps-item" onClick={() => handleUseGPS("from")}>
+                      <span className="sugg-pin">🎯</span>
+                      <div className="sugg-text-col">
+                        <span className="sugg-name">Use Current Location</span>
+                        <span className="sugg-fullname">Pinpoint using device GPS</span>
+                      </div>
+                    </div>
+
                     {fromLoading && <div className="sugg-loading">Searching Chennai…</div>}
+                    {!fromLoading && fromError && fromError !== "no_results" && fromError !== "timeout" && fromError !== "network_error" && (
+                      <div className="sugg-empty">{fromError}</div>
+                    )}
                     {!fromLoading && fromError === "no_results" && <div className="sugg-empty">No locations found</div>}
                     {!fromLoading && fromError === "timeout"    && <div className="sugg-empty">Search timed out — try again</div>}
-                    {!fromLoading && fromError === "network"    && <div className="sugg-empty">Network error — check connection</div>}
+                    {!fromLoading && fromError === "network_error" && <div className="sugg-empty">Network error — check connection</div>}
                     {!fromLoading && !fromError && fromSugg.map((s, i) => (
                       <div key={i} className="sugg-item" onClick={() => pickFrom(s)}>
                         <span className="sugg-pin">📍</span>
-                        <span className="sugg-name">{s.name}</span>
+                        <div className="sugg-text-col">
+                          <span className="sugg-name">{s.name}</span>
+                          {s.fullName && s.fullName !== s.name && (
+                            <span className="sugg-fullname">{s.fullName}</span>
+                          )}
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -286,19 +348,37 @@ export default function SearchPanel({
                     <button className="clear-x" onClick={() => { setToText(""); setToPlace(null); setToSugg([]); }}>×</button>
                   )}
                 </div>
-                {activeField === "to" && (toSugg.length > 0 || toLoading || toError) && (
+                {activeField === "to" && (
                   <div className="sugg-list">
                     <div className="sugg-list-header">
                       <button className="sugg-back" onClick={() => setActiveField(null)}>← back</button>
                     </div>
+
+                    {/* GPS Button */}
+                    <div className="sugg-item gps-item" onClick={() => handleUseGPS("to")}>
+                      <span className="sugg-pin">🎯</span>
+                      <div className="sugg-text-col">
+                        <span className="sugg-name">Use Current Location</span>
+                        <span className="sugg-fullname">Pinpoint using device GPS</span>
+                      </div>
+                    </div>
+
                     {toLoading && <div className="sugg-loading">Searching Chennai…</div>}
+                    {!toLoading && toError && toError !== "no_results" && toError !== "timeout" && toError !== "network_error" && (
+                      <div className="sugg-empty">{toError}</div>
+                    )}
                     {!toLoading && toError === "no_results" && <div className="sugg-empty">No locations found</div>}
                     {!toLoading && toError === "timeout"    && <div className="sugg-empty">Search timed out — try again</div>}
-                    {!toLoading && toError === "network"    && <div className="sugg-empty">Network error — check connection</div>}
+                    {!toLoading && toError === "network_error" && <div className="sugg-empty">Network error — check connection</div>}
                     {!toLoading && !toError && toSugg.map((s, i) => (
                       <div key={i} className="sugg-item" onClick={() => pickTo(s)}>
                         <span className="sugg-pin">📍</span>
-                        <span className="sugg-name">{s.name}</span>
+                        <div className="sugg-text-col">
+                          <span className="sugg-name">{s.name}</span>
+                          {s.fullName && s.fullName !== s.name && (
+                            <span className="sugg-fullname">{s.fullName}</span>
+                          )}
+                        </div>
                       </div>
                     ))}
                   </div>

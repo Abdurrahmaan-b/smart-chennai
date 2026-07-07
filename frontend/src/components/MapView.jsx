@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback } from "react";
+import { useEffect, useRef, useCallback, useState } from "react";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import "./MapView.css";
@@ -22,9 +22,11 @@ export default function MapView({
   isRoutingMode = false,
   showMapSelector = true,
   onUserDrag,
+  envStatus,
 }) {
   const mapContainerRef = useRef(null);
   const mapInst = useRef(null);
+  console.log("Smart Chennai MapView: Received envStatus:", envStatus);
 
   // Keep stable refs to handlers to avoid rebuilding map listeners when they change
   const interactionRef = useRef(onUserDrag);
@@ -249,7 +251,7 @@ export default function MapView({
           "line-color": ["get", "color"],
           "line-width": 3.5,
           "line-opacity": 0.95,
-          "line-dasharray": ["case", ["==", ["get", "mode"], "walk"], [2, 3], [1, 0]],
+          "line-dasharray": ["case", ["==", ["get", "mode"], "walk"], ["literal", [2, 3]], ["literal", [1, 0]]],
         },
       });
 
@@ -542,6 +544,24 @@ export default function MapView({
     }
   }, [selectedRoute, fromPlace, toPlace]);
 
+  // ── Fly to selected pins when they change ──
+  useEffect(() => {
+    if (!mapInst.current) return;
+    const map = mapInst.current;
+
+    // Only fly if there's no selectedRoute (drawRoute handles fitBounds if selectedRoute is active)
+    if (selectedRoute) return;
+
+    if (fromPlace && !toPlace) {
+      map.flyTo({ center: [fromPlace.lng, fromPlace.lat], zoom: 14, duration: 1000 });
+    } else if (toPlace && !fromPlace) {
+      map.flyTo({ center: [toPlace.lng, toPlace.lat], zoom: 14, duration: 1000 });
+    } else if (fromPlace && toPlace) {
+      const bounds = new maplibregl.LngLatBounds([fromPlace.lng, fromPlace.lat], [toPlace.lng, toPlace.lat]);
+      map.fitBounds(bounds, { padding: { top: 80, bottom: 220, left: 60, right: 60 }, duration: 1000 });
+    }
+  }, [fromPlace, toPlace, selectedRoute]);
+
 
   const stationsCount = stations.length;
   const suburbanCount = suburbanStations.length;
@@ -648,13 +668,15 @@ export default function MapView({
         </div>
       )}
 
-      {/* Floating Status HUD */}
       <StatusBadge
         status={backendStatus}
         stationsCount={stationsCount}
         suburbanCount={suburbanCount}
         busCount={busCount}
       />
+
+      {/* Floating Analog Clock HUD */}
+      <AnalogClock envStatus={envStatus} />
 
       {/* Station Info Drawer - Glassmorphism Contact Details overlay */}
       {selectedStationNode && (
@@ -699,6 +721,121 @@ export default function MapView({
               <span className="hud-drawer-val helpline-number">📞 {selectedStationNode.contact}</span>
             </div>
           </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ── ANALOG CLOCK HUD ── */
+function AnalogClock({ envStatus }) {
+  const [now, setNow] = useState(new Date());
+
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  const sec = now.getSeconds();
+  const min = now.getMinutes();
+  const hr  = now.getHours() % 12;
+
+  const secDeg = sec * 6;
+  const minDeg = min * 6 + sec * 0.1;
+  const hrDeg  = hr * 30 + min * 0.5;
+
+  // SVG viewBox is 100x100 so center is (50,50)
+  const hand = (deg, len) => ({
+    x2: 50 + len * Math.sin((deg * Math.PI) / 180),
+    y2: 50 - len * Math.cos((deg * Math.PI) / 180),
+  });
+
+  const hHand = hand(hrDeg, 22);
+  const mHand = hand(minDeg, 32);
+  const sHand = hand(secDeg, 36);
+
+  const digital = now.toLocaleTimeString("en-IN", {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: true,
+    timeZone: "Asia/Kolkata",
+  });
+
+  const weatherIcon = envStatus?.weather.is_raining ? "🌧️"
+    : envStatus?.weather.condition === "Cloudy" ? "☁️"
+    : envStatus?.weather.condition === "Drizzle" ? "🌦️"
+    : envStatus?.weather.condition === "Thunderstorm" ? "⛈️"
+    : "☀️";
+
+  return (
+    <div className="clock-hud">
+      {/* ── Analog face ── */}
+      <div className="clock-face">
+        <svg viewBox="0 0 100 100" className="clock-svg">
+          {/* Outer glow ring */}
+          <circle cx="50" cy="50" r="47" className="clock-glow-ring" />
+          {/* Bezel */}
+          <circle cx="50" cy="50" r="46" className="clock-bezel" />
+          {/* Face fill */}
+          <circle cx="50" cy="50" r="44" className="clock-face-fill" />
+
+          {/* Tick marks — 12 positions */}
+          {[...Array(12)].map((_, i) => {
+            const a  = (i * 30 - 90) * (Math.PI / 180);
+            const r1 = i % 3 === 0 ? 36 : 38;
+            const r2 = 43;
+            return (
+              <line
+                key={i}
+                x1={50 + r1 * Math.cos(a)} y1={50 + r1 * Math.sin(a)}
+                x2={50 + r2 * Math.cos(a)} y2={50 + r2 * Math.sin(a)}
+                className={i % 3 === 0 ? "tick-major" : "tick-minor"}
+              />
+            );
+          })}
+
+          {/* Hour hand */}
+          <line x1="50" y1="50" x2={hHand.x2} y2={hHand.y2} className="hand-hr" />
+          {/* Minute hand */}
+          <line x1="50" y1="50" x2={mHand.x2} y2={mHand.y2} className="hand-min" />
+          {/* Second hand */}
+          <line x1="50" y1="50" x2={sHand.x2} y2={sHand.y2} className="hand-sec" />
+          {/* Second tail */}
+          <line
+            x1="50" y1="50"
+            x2={50 - 10 * Math.sin((secDeg * Math.PI) / 180)}
+            y2={50 + 10 * Math.cos((secDeg * Math.PI) / 180)}
+            className="hand-sec-tail"
+          />
+          {/* Center jewel */}
+          <circle cx="50" cy="50" r="3.5" className="clock-jewel" />
+          <circle cx="50" cy="50" r="1.8" className="clock-jewel-inner" />
+        </svg>
+
+        {/* Digital time */}
+        <div className="clock-digital">{digital}</div>
+      </div>
+
+      {/* ── Divider ── */}
+      <div className="clock-divider" />
+
+      {/* ── Weather ── */}
+      {envStatus ? (
+        <div className="clock-weather">
+          <div className="cw-row">
+            <span className="cw-icon">{weatherIcon}</span>
+            <span className="cw-temp">{envStatus.weather.temperature.toFixed(1)}°</span>
+          </div>
+          <span className="cw-cond">{envStatus.weather.condition}</span>
+          {envStatus.time.is_peak_hours && <span className="cw-badge peak">⚡ PEAK HOURS</span>}
+          {envStatus.time.is_night && !envStatus.time.metro_operating && (
+            <span className="cw-badge night">🚇 NO METRO</span>
+          )}
+        </div>
+      ) : (
+        <div className="clock-weather">
+          <span className="cw-cond">Loading...</span>
         </div>
       )}
     </div>
