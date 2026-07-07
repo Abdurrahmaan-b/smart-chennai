@@ -22,12 +22,12 @@ graph TD
     User([User Client]) -->|1. Search Request / Geolocation| FE[React + MapLibre GL Frontend]
     FE -->|2. Query / Reverse Geocode| BE[FastAPI Python Backend]
     
-    subgraph External APIs (Keyless & Cached)
+    subgraph ExtApis ["External APIs (Keyless & Cached)"]
         BE -->|3. Chennai-Restricted Lookup| Geoapify[Geoapify Geocoding API]
         BE -->|4. Current Weather Code| OpenMeteo[Open-Meteo Weather API]
     end
     
-    subgraph Relational Datasets
+    subgraph RelData ["Relational Datasets"]
         BE -->|5. SQL Queries| DB[(Chennai Transit SQLite DBs)]
         DB -->|Metro / Suburban / Bus stops| BE
     end
